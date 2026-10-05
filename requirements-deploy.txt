@@ -1,0 +1,9 @@
+# Minimal dependencies for deploy/infer_robot.py (no TensorFlow).
+torch>=2.3
+torchvision
+numpy
+Pillow
+einops
+timm
+ml_collections
+matplotlib

@@ -1,0 +1,20 @@
+# Core (model, planning, robot deployment)
+torch>=2.3
+torchvision
+numpy<2
+Pillow
+einops
+timm
+ml_collections
+matplotlib
+
+# Training / evaluation (RLDS data pipeline, logging)
+tensorflow==2.15.0
+tensorflow-datasets==4.9.2
+dlimp @ git+https://github.com/kvablack/dlimp@5edaa4691567873d495633f2708982b42edf1972
+absl-py
+accelerate
+wandb
+tqdm
+scipy
+scikit-learn

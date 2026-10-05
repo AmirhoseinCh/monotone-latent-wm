@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lmwm"
+version = "0.1.0"
+description = "Latent World Models with Monotone Planning Costs for Image-Goal Navigation"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "CC-BY-NC-4.0" }
+
+[tool.setuptools.packages.find]
+include = ["lmwm*"]

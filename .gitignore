@@ -1,0 +1,24 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+
+# Experiment outputs
+wandb/
+checkpoints/
+outputs/
+eval_results*/
+plots/
+*.pt
+*.pth
+*.npz
+
+# Local data / weights
+data/
+pretrained/
+dinov3/
+
+.vscode/
+.idea/
+.claude/
+.DS_Store
