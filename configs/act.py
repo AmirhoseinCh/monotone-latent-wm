@@ -1,6 +1,12 @@
 """
 ACT (investigated variant, negative result): Base + action-contrastive InfoNCE
-loss (Eq. 5) computed over rollouts under permuted / reversed action sequences.
+(Eq. 5, weight 0.25, 100-step warm-up). Identical to configs/base.py otherwise.
+
+Negatives: each scene is rolled out under the action sequence of another batch
+element (random cyclic shift) and every anchor is contrasted against all B
+negative rollouts. Set cfg.contrast_negatives = "permutation" for the
+order-sensitive variant (temporal permutations + reversed actions), which was
+not used for the paper results.
 
 Run:
     torchrun --nproc_per_node 4 train.py --config configs/act.py --encoder dino --name act
@@ -117,30 +123,30 @@ def get_config(encoder_type: str = "dino"):
 
     # ── Rollout schedule ─────────────────────────────────────────────────
     cfg.rollout_schedule = [
-        (3000,   2,  32, 1e-4),
-        (14000,  4,   32, 8e-5),
-        (24000,  6,   16, 5e-5),
-        (34000,  8,   16, 3e-5),
+        (2000,  2,  128, 1e-4),   # counter-curriculum: start at 2-step, penalizes identity immediately
+        (6000,  4,  64, 5e-5),
+        (10000,  6,  32, 1e-5),
+        (14000,  8,  32, 5e-6),
     ]
     cfg.ctxt_window = 4
     cfg.rollout_seed_frames = 4
     cfg.tf_loss_weight = 0.0
     cfg.residual_prediction = False       # predict z_{t+1}, not z_{t+1} - z_t
-    cfg.contrast_loss_weight      = 0.7
+    cfg.contrast_loss_weight      = 0.25
+    cfg.contrast_negatives        = "cyclic"   # "cyclic" (paper) | "permutation"
     cfg.contrast_rollout_schedule = [   # K ramps in sync with main schedule, stays <= main K
-        (3000,   2),
-        (14000,  4),
-        (24000,  6),
-        (34000,  8),
+        (2000,  2),
+        (6000,  4),
+        (10000,  6),
+        (14000,  8),
     ]
     cfg.contrast_seed_frames  = 4
     cfg.contrast_ctxt_window  = 4
     cfg.contrast_warmup_steps = 100     # gate until predictor is non-degenerate
     cfg.infonce_temperature   = 0.1
-    cfg.contrast_n_perm_negs  = 2   # temporal-permutation negatives per sample
 
     # ── Optimisation ─────────────────────────────────────────────────────
-    cfg.num_steps = 70000
+    cfg.num_steps = 18000
     cfg.lr = 5e-4
     cfg.weight_decay = 0.01
     cfg.warmup_steps = 500

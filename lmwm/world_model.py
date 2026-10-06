@@ -245,10 +245,66 @@ class LatentWorldModel(nn.Module):
 
     # ── Action-contrastive InfoNCE loss (ACT variant, Eq. 5) ──────────────
     def contrastive_action_loss(self, gt_feats, actions, lang_emb=None,
-                            rollout_steps=3, ctxt_window=4, seed_frames=2,
-                            temperature=0.1, n_perm_negs=3):
-        
-        """Multi-step order-sensitive InfoNCE (the ACT variant studied in the paper).
+                                rollout_steps=3, ctxt_window=4, seed_frames=2,
+                                temperature=0.1):
+        """Multi-step InfoNCE with cyclic-shift negatives (the ACT variant in the paper).
+
+        Positive: K-step rollout of each scene under its GT actions.
+        Negatives: K-step rollouts of each scene under the action sequence of
+        another batch element (random cyclic shift of the batch); every anchor
+        is contrasted against all B negative rollouts.
+        Target is the encoded feature K steps after the seed.
+
+        Returns: (loss, mean positive similarity, mean same-scene negative similarity).
+        """
+        B, T, V, H, W, D = gt_feats.shape
+        device = gt_feats.device
+        seed_frames = max(1, int(seed_frames))
+        if B < 2 or T < seed_frames + rollout_steps:
+            return torch.tensor(0.0, device=device), 0.0, 0.0
+
+        def _rollout(acts):
+            rolled = [gt_feats[:, :seed_frames].detach()]
+            for step in range(rollout_steps):
+                buf       = torch.cat(rolled, dim=1)
+                ctx_start = max(0, buf.shape[1] - ctxt_window)
+                ctx_feats = buf[:, ctx_start:]
+                ctx_acts  = acts[:, ctx_start:ctx_start + ctx_feats.shape[1]]
+                pred_next = self.forward_pred(ctx_feats, ctx_acts, lang_emb)
+                rolled.append(pred_next[:, -1:])
+            return rolled[-1]   # (B, 1, V, H, W, D)
+
+        pred_pos = _rollout(actions)
+
+        shift    = torch.randint(1, B, (1,)).item()
+        perm     = torch.arange(B, device=device).roll(shift)
+        pred_neg = _rollout(actions[perm])
+
+        tgt_idx   = seed_frames + rollout_steps - 1
+        gt_target = gt_feats[:, tgt_idx:tgt_idx + 1]   # (B, 1, V, H, W, D)
+
+        def _pool(t):
+            t = t.reshape(B, -1, D)
+            return F.normalize(F.normalize(t, dim=-1).mean(dim=1), dim=-1)
+
+        p_pos = _pool(pred_pos)
+        p_neg = _pool(pred_neg)
+        g     = _pool(gt_target)
+
+        logit_pos = (g * p_pos).sum(-1, keepdim=True) / temperature  # (B, 1)
+        logit_neg = g @ p_neg.T / temperature                         # (B, B)
+        logits    = torch.cat([logit_pos, logit_neg], dim=1)
+        targets   = torch.zeros(B, dtype=torch.long, device=device)
+        loss = F.cross_entropy(logits, targets)
+
+        sim_pos = logit_pos.squeeze(1) * temperature   # (B,) — correct action
+        sim_neg = logit_neg.diagonal() * temperature   # (B,) — same scene, wrong action
+        return loss, sim_pos.mean().item(), sim_neg.mean().item()
+
+    def contrastive_action_loss_perm(self, gt_feats, actions, lang_emb=None,
+                                     rollout_steps=3, ctxt_window=4, seed_frames=2,
+                                     temperature=0.1, n_perm_negs=3):
+        """Order-sensitive InfoNCE variant (not used for the paper results).
 
         Positive: rollout under GT actions.
         Negatives: rollouts under temporal permutations of the same actions

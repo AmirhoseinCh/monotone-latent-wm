@@ -138,7 +138,7 @@ def get_config(encoder_type: str = "dino"):
     cfg.contrast_ctxt_window = 4
     cfg.contrast_warmup_steps = 0
     cfg.infonce_temperature = 0.1
-    cfg.contrast_n_perm_negs = 2
+    cfg.contrast_negatives = "cyclic"
 
     # ── Monotone Cost Ranking (MCR) ───────────────────────────────────────────
     cfg.mcr_weight = 1.0          # ranking loss weight in total loss

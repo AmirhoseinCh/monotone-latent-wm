@@ -54,7 +54,7 @@ export DINOV3_CKPT_ROOT=/path/to/dir/containing/the/pth
 
 ## Data
 
-We train and evaluate on the image portion of GNM, as released in the [CAST dataset](https://huggingface.co/datasets/catglossop/CAST-dataset) (`cast_filtered_dataset`, RLDS format). It has 14,240 training trajectories and a held-out `val` split.
+We train and evaluate on the image portion of GNM, as released in the [CAST dataset](https://huggingface.co/datasets/catglossop/CAST-dataset) (`cast_filtered_dataset`, RLDS format). It has 14,240 training trajectories and a held-out `val` split of 1,253 trajectories, from which evaluation takes 1,316 non-overlapping 12-frame windows.
 
 ```bash
 hf download catglossop/CAST-dataset cast_filtered_dataset.tar.gz --repo-type=dataset --local-dir downloads
@@ -87,7 +87,7 @@ bash scripts/train_mcr.sh checkpoints/dino_base_<timestamp>/final_model.pt dino
 
 ```bash
 torchrun --nproc_per_node 4 train.py --config configs/tf.py  --encoder dino --name tf    # teacher forcing
-torchrun --nproc_per_node 4 train.py --config configs/act.py --encoder dino --name act   # action-contrastive (negative result)
+torchrun --nproc_per_node 4 train.py --config configs/act.py --encoder dino --name act   # action-contrastive, weight 0.25 (negative result)
 bash scripts/train_dinowm.sh dino                                                        # DINO-WM baseline
 ```
 
@@ -118,7 +118,7 @@ See [deploy/README.md](deploy/README.md) for details. In the paper, inference ru
 
 ## Results
 
-GNM test split, K=6 horizon, C=4 context. All metrics are lower-is-better.
+1,316 GNM test windows, K=6 horizon, C=4 context. All metrics are lower-is-better.
 
 | Method | AOE (°) | MAOE (°) | ADE (m) | MADE (m) |
 |---|---:|---:|---:|---:|

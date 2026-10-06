@@ -591,14 +591,22 @@ def main(_):
                     if global_step >= _entry[0]:
                         contrast_k = _entry[1]
 
-                ct_loss, sim_diag_val, sim_off_val = world_model.module.contrastive_action_loss(
-                    gt_feats, actions,
+                contrast_kwargs = dict(
                     rollout_steps=contrast_k,
                     ctxt_window=getattr(cfg, "contrast_ctxt_window", 4),
                     seed_frames=getattr(cfg, "contrast_seed_frames", 2),
                     temperature=getattr(cfg, "infonce_temperature", 0.1),
-                    n_perm_negs=getattr(cfg, "contrast_n_perm_negs", 3),
                 )
+                if getattr(cfg, "contrast_negatives", "cyclic") == "permutation":
+                    ct_loss, sim_diag_val, sim_off_val = world_model.module.contrastive_action_loss_perm(
+                        gt_feats, actions,
+                        n_perm_negs=getattr(cfg, "contrast_n_perm_negs", 3),
+                        **contrast_kwargs,
+                    )
+                else:
+                    ct_loss, sim_diag_val, sim_off_val = world_model.module.contrastive_action_loss(
+                        gt_feats, actions, **contrast_kwargs,
+                    )
                 loss = loss + contrast_weight * ct_loss
             else:
                 ct_loss, sim_diag_val, sim_off_val = None, None, None
