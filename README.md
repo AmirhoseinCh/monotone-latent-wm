@@ -1,6 +1,8 @@
 # Latent World Models with Monotone Planning Costs for Image-Goal Navigation
 
-Official code for **"Latent World Models with Monotone Planning Costs for Image-Goal Navigation"**.
+[![arXiv](https://img.shields.io/badge/arXiv-2608.09073-b31b1b.svg)](https://arxiv.org/abs/2608.09073)
+
+Official code for **"Latent World Models with Monotone Planning Costs for Image-Goal Navigation"** ([arXiv:2608.09073](https://arxiv.org/abs/2608.09073)).
 
 A JEPA-style latent world model plans image-goal navigation with the Cross-Entropy Method (CEM). The planning cost is the cosine distance between the predicted future embedding and the goal embedding. For CEM to converge reliably, this cost has to be **monotone**: it should grow as an action sequence deviates further from the optimal plan. Two training stages enforce this:
 
@@ -9,7 +11,7 @@ A JEPA-style latent world model plans image-goal navigation with the Cross-Entro
 
 The model is a frozen DINO-family encoder (DINOv2, DINOv3 or V-JEPA 2) followed by an AdaLN ViT predictor. Planning happens entirely in latent space; no pixels are reconstructed.
 
-<!-- TODO: add teaser figure, paper link and project page after the review period. -->
+<!-- TODO: add teaser figure and project page. -->
 
 ---
 
@@ -137,10 +139,14 @@ See the paper for the full ablation over TF / Base / ACT, each with and without 
 ## Citation
 
 ```bibtex
-@article{monotone_latent_wm,
-  title  = {Latent World Models with Monotone Planning Costs for Image-Goal Navigation},
-  author = {Anonymous},
-  year   = {2026}
+@misc{chahe2026latentworldmodelsmonotone,
+  title         = {Latent World Models with Monotone Planning Costs for Image-Goal Navigation},
+  author        = {Amirhosein Chahe and Siwei Cai and Lifeng Zhou},
+  year          = {2026},
+  eprint        = {2608.09073},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.RO},
+  url           = {https://arxiv.org/abs/2608.09073}
 }
 ```
 

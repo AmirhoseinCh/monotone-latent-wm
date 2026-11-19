@@ -10,5 +10,9 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "CC-BY-NC-4.0" }
 
+[project.urls]
+Paper = "https://arxiv.org/abs/2608.09073"
+Repository = "https://github.com/AmirhoseinCh/monotone-latent-wm"
+
 [tool.setuptools.packages.find]
 include = ["lmwm*"]
